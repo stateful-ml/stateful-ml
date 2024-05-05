@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  pgvectordb:
+    image: ankane/pgvector
+    container_name: pgvectordb
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: docker
+    volumes:
+      - ./postgresdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bridge
+
+  fastapi_service:
+    build: ./service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - pgvectordb
+    networks:
+      - bridge
+
+networks:
+  bridge:
+    driver: bridge

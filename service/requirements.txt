@@ -1,0 +1,4 @@
+pgvector==0.2.5
+pydantic==2.7.1
+fastapi==0.110.3
+sqlmodel==0.0.18
