@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Depends
-from request_typing import RecommendationRequest
-from db import get_session
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
+from .request_typing import RecommendationRequest
+from .db import get_session
 
 app = FastAPI()
 

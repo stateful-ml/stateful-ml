@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Literal
-from shared.data_models import ContentId, UserId
+from .shared.data_models import ContentId, UserId
 
 class Impression(BaseModel):
     content_id: ContentId

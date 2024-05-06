@@ -7,7 +7,7 @@ from supabase import create_client, Client
 from sqlmodel import Session, SQLModel, create_engine, inspect
 from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
-from shared.data_models import EMBEDDING_SIZE, Content, Users
+from .shared.data_models import EMBEDDING_SIZE, Content, Users
 from runner import run_etl
 import dotenv
 dotenv.load_dotenv()
