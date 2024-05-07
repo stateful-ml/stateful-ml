@@ -54,7 +54,7 @@ def etl(source: Client, destination: Connection):
 
 @task
 def manage_schema(conn: Connection):
-    version = f'{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}'
+    version = f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}"
     conn.execute(CreateSchema(version, if_not_exists=True))
     SQLModel.metadata.schema = version
     SQLModel.metadata.create_all(conn)
