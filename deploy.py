@@ -1,6 +1,7 @@
 import argparse
 from prefect import flow
 from prefect.deployments.runner import DeploymentImage
+from prefect.runner.storage import GitRepository
 
 
 def parse_args():
@@ -13,8 +14,8 @@ def parse_args():
 args = parse_args()
 
 flow.from_source(
-    source=f"https://github.com/stateful-ml/stateful-ml@{args.version}",
-    entrypoint=f"pipelines/main.py:{args.version}",
-).deploy(
-    args.model
-)
+    source=GitRepository(
+        url="https://github.com/stateful-ml/stateful-ml.git", branch=args.version
+    ),
+    entrypoint="pipelines/main.py:main",
+).with_options(name=args.version).deploy(args.model)

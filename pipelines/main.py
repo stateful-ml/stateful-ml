@@ -10,7 +10,9 @@ from sqlalchemy.schema import CreateSchema
 from .shared.data_models import EMBEDDING_SIZE, Content, Users
 from runner import run_etl
 import dotenv
+
 dotenv.load_dotenv()
+
 
 def extract(client: Client, batch_size: int):
     batch = []
@@ -69,7 +71,7 @@ def index(conn: Connection):
     ).create(conn)
 
 
-@flow(name=os.environ['CODE_VERSION'])
+@flow
 def main(model: str):
     print(model)
     supabase_client = create_client(
@@ -89,9 +91,8 @@ def main(model: str):
 
 
 if __name__ == "__main__":
-    _ = main.serve(
-        os.environ['MODEL_VERSION'],
+    _ = main.with_options(name=os.environ["CODE_VERSION"]).serve(
+        os.environ["MODEL_VERSION"],
         parameters={"model": os.environ["MODEL_VERSION"]},
         tags=["stg"],
     )
-    main.deploy('',image=)
