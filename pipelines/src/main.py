@@ -74,6 +74,7 @@ def index(conn: Connection):
 @flow
 def main(model: str):
     print(model)
+
     supabase_client = create_client(
         os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
     )
@@ -96,3 +97,4 @@ if __name__ == "__main__":
         parameters={"model": os.environ["MODEL_VERSION"]},
         tags=["stg"],
     )
+    
