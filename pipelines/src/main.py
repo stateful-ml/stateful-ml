@@ -3,11 +3,12 @@ import polars as pl
 import numpy as np
 from functools import partial
 from prefect import flow, task
+from prefect.deployments.runner import DeploymentImage
 from supabase import create_client, Client
-from sqlmodel import Session, SQLModel, create_engine, inspect
+from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
-from .shared.data_models import EMBEDDING_SIZE, Content, Users
+from shared.data_models import EMBEDDING_SIZE, Content, Users
 from runner import run_etl
 import dotenv
 
@@ -92,9 +93,13 @@ def main(model: str):
 
 
 if __name__ == "__main__":
-    _ = main.with_options(name=os.environ["CODE_VERSION"]).serve(
+    _ = main.with_options(name=os.environ["CODE_VERSION"]).deploy(
         os.environ["MODEL_VERSION"],
         parameters={"model": os.environ["MODEL_VERSION"]},
         tags=["stg"],
+        image=DeploymentImage(
+            f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
+            dockerfile="./pipelines.Dockerfile", # should only be run from the root
+        ),
+        push=False,
     )
-    

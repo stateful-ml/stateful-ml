@@ -56,6 +56,29 @@ services:
     depends_on:
       - prefect_db
 
+  prefect_worker:
+    build:
+      dockerfile: ./worker.Dockerfile
+    restart: always
+    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "worker", "start", "--type", "docker", "--pool", "docker-pool"]
+    environment:
+      - PREFECT_API_URL=http://prefect_server:4200/api
+    depends_on:
+      - prefect_server
+
+  prefect_cli:
+    image: prefecthq/prefect:2-python3.12
+    restart: always
+    entrypoint: "bash"
+    environment:
+      - PREFECT_API_URL=http://prefect_server:4200/api
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    depends_on:
+      - prefect_server
+    profiles: ["cli"]
+
+
 volumes:
   pgvectordata:
   prefect:
