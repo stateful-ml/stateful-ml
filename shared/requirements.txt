@@ -1,0 +1,8 @@
+numpy==1.26.4
+prefect==2.18.3
+supabase==2.4.5
+sqlmodel==0.0.18
+sqlalchemy==2.0.29
+pgvector==0.2.5
+pydantic==2.7.1
+

@@ -1,3 +1,4 @@
 .env
 pgvectordata
 prefect
+__pycache__
