@@ -4,6 +4,7 @@ import numpy as np
 from functools import partial
 from prefect import flow, task
 from prefect.deployments.runner import DeploymentImage
+from prefect.blocks.system import Secret
 from supabase import create_client, Client
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import Connection, Index
@@ -15,10 +16,10 @@ import dotenv
 dotenv.load_dotenv()
 
 
-def extract(client: Client, batch_size: int):
+def extract(content_bucket: str, client: Client, batch_size: int):
     batch = []
     metadata = []
-    storage = client.storage.from_(os.environ["CONTENT_BUCKET"])
+    storage = client.storage.from_(content_bucket)
     for blob in storage.list():
         data = storage.download(blob["path"])
         batch.append(np.array(data))
@@ -45,17 +46,21 @@ def upload(data: tuple[np.ndarray, pl.DataFrame], conn: Connection):
 
 
 @task
-def etl(source: Client, destination: Connection):
+def etl(content_bucket: str, source: Client, destination: Connection):
     run_etl(
-        partial(extract, client=source, batch_size=100),
+        partial(
+            extract,
+            content_bucket=content_bucket,
+            client=source,
+            batch_size=100,
+        ),
         transform,
         partial(upload, conn=destination),
     )
 
 
 @task
-def manage_schema(conn: Connection):
-    version = f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}"
+def manage_schema(version: str, conn: Connection):
     conn.execute(CreateSchema(version, if_not_exists=True))
     SQLModel.metadata.schema = version
     SQLModel.metadata.create_all(conn)
@@ -73,19 +78,22 @@ def index(conn: Connection):
 
 
 @flow
-def main(model: str):
-    print(model)
+def main(model: str, version: str):
+    print(version)
 
     supabase_client = create_client(
-        os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"]
+
+        Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
     )
     pg_engine = create_engine(
-        f"postgresql+psycopg2://{os.environ['VECTORSTORE_CONNECTION_STRING']}"
+        f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
     )
-    with pg_engine.connect() as conn:
-        manage_schema(conn)
+    content_bucket = Secret.load("content-bucket").get()
 
-        etl(supabase_client, conn)
+    with pg_engine.connect() as conn:
+        manage_schema(version, conn)
+
+        etl(content_bucket, supabase_client, conn)
 
         index(conn)
 
@@ -95,11 +103,14 @@ def main(model: str):
 if __name__ == "__main__":
     _ = main.with_options(name=os.environ["CODE_VERSION"]).deploy(
         os.environ["MODEL_VERSION"],
-        parameters={"model": os.environ["MODEL_VERSION"]},
+        parameters={
+            "model": os.environ["MODEL_VERSION"],
+            "version": f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
+        },
         tags=["stg"],
         image=DeploymentImage(
             f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
-            dockerfile="./pipelines.Dockerfile", # should only be run from the root
+            dockerfile="./pipelines.Dockerfile",  # should only be run from the root
         ),
         push=False,
     )
