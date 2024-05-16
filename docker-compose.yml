@@ -71,6 +71,16 @@ services:
     depends_on:
       - prefect_server
 
+  prefect_process_worker:
+    build:
+      dockerfile: ./worker.Dockerfile
+    restart: always
+    entrypoint: ["/opt/prefect/entrypoint.sh", "prefect", "worker", "start", "--type", "process", "--pool", "process-pool"]
+    environment:
+      - PREFECT_API_URL=http://prefect_server:4200/api
+    depends_on:
+      - prefect_server
+
   prefect_cli:
     image: prefecthq/prefect:2-python3.12
     restart: always

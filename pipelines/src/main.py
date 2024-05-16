@@ -5,6 +5,7 @@ from functools import partial
 from prefect import flow, task
 from prefect.deployments.runner import DeploymentImage
 from prefect.blocks.system import Secret
+from prefect.runner.storage import GitRepository
 from supabase import create_client, Client
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import Connection, Index
@@ -82,7 +83,6 @@ def main(model: str, version: str):
     print(version)
 
     supabase_client = create_client(
-
         Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
     )
     pg_engine = create_engine(
@@ -101,16 +101,21 @@ def main(model: str, version: str):
 
 
 if __name__ == "__main__":
-    _ = main.with_options(name=os.environ["CODE_VERSION"]).deploy(
-        os.environ["MODEL_VERSION"],
-        parameters={
-            "model": os.environ["MODEL_VERSION"],
-            "version": f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
-        },
-        tags=["stg"],
-        image=DeploymentImage(
-            f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
-            dockerfile="./pipelines.Dockerfile",  # should only be run from the root
-        ),
-        push=False,
+    _ = (
+        flow.from_source(
+            GitRepository(
+                "https://github.com/stateful-ml/stateful-ml.git", branch="testing__rev0"
+            ),
+            entrypoint="pipelines/src/main.py:main",
+        )
+        .with_options(name=os.environ["CODE_VERSION"])
+        .deploy(
+            os.environ["MODEL_VERSION"],
+            parameters={
+                "model": os.environ["MODEL_VERSION"],
+                "version": f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
+            },
+            tags=["stg"],
+            work_pool_name="process-pool",
+        )
     )
