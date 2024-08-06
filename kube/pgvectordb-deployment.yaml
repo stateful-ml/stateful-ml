@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.33.0 (3ce457399)
+  labels:
+    io.kompose.service: pgvectordb
+  name: pgvectordb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: pgvectordb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.33.0 (3ce457399)
+      labels:
+        io.kompose.network/stateful-ml-network: "true"
+        io.kompose.service: pgvectordb
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: pgvector
+            - name: POSTGRES_PASSWORD
+              value: pgvector
+            - name: POSTGRES_USER
+              value: pgvector
+          image: ankane/pgvector
+          name: pgvectordb
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pgvectordata
+      restartPolicy: Always
+      volumes:
+        - name: pgvectordata
+          persistentVolumeClaim:
+            claimName: pgvectordata

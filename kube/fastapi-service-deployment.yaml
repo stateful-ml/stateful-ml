@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.33.0 (3ce457399)
+  labels:
+    io.kompose.service: fastapi-service
+  name: fastapi-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: fastapi-service
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.33.0 (3ce457399)
+      labels:
+        io.kompose.network/stateful-ml-network: "true"
+        io.kompose.service: fastapi-service
+    spec:
+      containers:
+        - env:
+            - name: CODE_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  key: CODE_VERSION
+                  name: env
+            - name: CONTENT_BUCKET
+              valueFrom:
+                configMapKeyRef:
+                  key: CONTENT_BUCKET
+                  name: env
+            - name: MODEL_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  key: MODEL_VERSION
+                  name: env
+            - name: PREFECT_DEFAULT_WORK_POOL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: PREFECT_DEFAULT_WORK_POOL_NAME
+                  name: env
+            - name: SUPABASE_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: SUPABASE_KEY
+                  name: env
+            - name: SUPABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: SUPABASE_URL
+                  name: env
+            - name: VECTORSTORE_CONNECTION_STRING
+              valueFrom:
+                configMapKeyRef:
+                  key: VECTORSTORE_CONNECTION_STRING
+                  name: env
+          image: stateful-ml-fastapi_service
+          imagePullPolicy: Never
+          name: fastapi-service
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      restartPolicy: Always

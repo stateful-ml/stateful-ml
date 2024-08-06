@@ -1,9 +1,7 @@
-import os
 import polars as pl
 import numpy as np
 from functools import partial
 from prefect import flow, task
-from prefect.deployments.runner import DeploymentImage
 from prefect.blocks.system import Secret
 from supabase import create_client, Client
 from sqlmodel import Session, SQLModel, create_engine
@@ -11,9 +9,6 @@ from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
 from shared.data_models import EMBEDDING_SIZE, Content, Users
 from runner import run_etl
-import dotenv
-
-dotenv.load_dotenv()
 
 
 def extract(content_bucket: str, client: Client, batch_size: int):
@@ -99,18 +94,4 @@ def main(model: str, version: str):
 
         conn.commit()
 
-
-if __name__ == "__main__":
-    _ = main.with_options(name=os.environ["CODE_VERSION"]).deploy(
-        os.environ["MODEL_VERSION"],
-        parameters={
-            "model": os.environ["MODEL_VERSION"],
-            "version": f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
-        },
-        tags=["stg"],
-        image=DeploymentImage(
-            f"{os.environ['CODE_VERSION']}__{os.environ['MODEL_VERSION']}",
-            dockerfile="./pipelines.Dockerfile",  # should only be run from the root
-        ),
-        push=False,
-    )
+# consider going back to image based flow storage to manage requirements

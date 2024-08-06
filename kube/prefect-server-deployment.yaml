@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.33.0 (3ce457399)
+  labels:
+    io.kompose.service: prefect-server
+  name: prefect-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: prefect-server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.33.0 (3ce457399)
+      labels:
+        io.kompose.network/stateful-ml-network: "true"
+        io.kompose.service: prefect-server
+    spec:
+      containers:
+        - command:
+            - /opt/prefect/entrypoint.sh
+            - prefect
+            - server
+            - start
+          env:
+            - name: PREFECT_API_DATABASE_CONNECTION_URL
+              value: postgresql+asyncpg://postgres:postgres@prefect-db:5432/prefect
+            - name: PREFECT_API_URL
+              value: http://127.0.0.1:4200/api
+            - name: PREFECT_SERVER_API_HOST
+              value: 0.0.0.0
+            - name: PREFECT_UI_URL
+              value: http://127.0.0.1:4200/api
+          image: prefecthq/prefect:2-python3.11
+          name: prefect-server
+          ports:
+            - containerPort: 4200
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /root/.prefect
+              name: prefect-server-data
+      restartPolicy: Always
+      volumes:
+        - name: prefect-server-data
+          persistentVolumeClaim:
+            claimName: prefect-server-data

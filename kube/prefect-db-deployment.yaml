@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.33.0 (3ce457399)
+  labels:
+    io.kompose.service: prefect-db
+  name: prefect-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: prefect-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.33.0 (3ce457399)
+      labels:
+        io.kompose.network/stateful-ml-network: "true"
+        io.kompose.service: prefect-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              value: prefect
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+          image: postgres
+          name: prefect-db
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: prefect-db-data
+      restartPolicy: Always
+      volumes:
+        - name: prefect-db-data
+          persistentVolumeClaim:
+            claimName: prefect-db-data

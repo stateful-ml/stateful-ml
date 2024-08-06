@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  CODE_VERSION: example__rev1
+  CONTENT_BUCKET: bucket
+  MODEL_VERSION: none__v0
+  PREFECT_DEFAULT_WORK_POOL_NAME: work_pool
+  SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlheHF6emN3amZwcnd0Y3hmYWtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTQ1ODQ0NjQsImV4cCI6MjAzMDE2MDQ2NH0.GmioPOaDQtuzeRYpJqCmRqKZmcVLaLWOIa6mD_eJCT8
+  SUPABASE_URL: https://iaxqzzcwjfprwtcxfakg.supabase.co
+  VECTORSTORE_CONNECTION_STRING: pgvector:pgvector@pgvectordb:5432/pgvector
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: fastapi-service-env
+  name: env
