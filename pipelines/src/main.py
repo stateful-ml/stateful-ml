@@ -9,7 +9,7 @@ from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
 from shared.data_models import EMBEDDING_SIZE, Content, Users
 from runner import run_etl
-
+import dotenv
 
 def extract(content_bucket: str, client: Client, batch_size: int):
     batch = []
@@ -77,7 +77,6 @@ def main(model: str, version: str):
     print(version)
 
     supabase_client = create_client(
-
         Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
     )
     pg_engine = create_engine(
@@ -94,4 +93,17 @@ def main(model: str, version: str):
 
         conn.commit()
 
-# consider going back to image based flow storage to manage requirements
+
+if __name__ == '__main__':
+    import os
+    import dotenv
+    dotenv.load_dotenv()
+    client = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_KEY'])
+    a = extract(
+        os.environ['CONTENT_BUCKET'],
+        client,
+        100
+    )
+    for el in a:
+        print(el)
+        raise
