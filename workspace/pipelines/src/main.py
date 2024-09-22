@@ -7,9 +7,10 @@ from supabase import create_client, Client
 from sqlmodel import Session, SQLModel, create_engine
 from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
-from shared.data_models import EMBEDDING_SIZE, Content, Users
-from runner import run_etl
+from .shared.data_models import EMBEDDING_SIZE, Content, Users
+from .runner import run_etl
 import dotenv
+
 
 def extract(content_bucket: str, client: Client, batch_size: int):
     batch = []
@@ -94,15 +95,19 @@ def main(model: str, version: str):
         conn.commit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import os
     import dotenv
+
     dotenv.load_dotenv()
-    client = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_KEY'])
+    client = create_client(
+        os.environ["SUPABASE_URL"],
+        os.environ["SUPABASE_KEY"],
+    )
     a = extract(
-        os.environ['CONTENT_BUCKET'],
+        os.environ["CONTENT_BUCKET"],
         client,
-        100
+        100,
     )
     for el in a:
         print(el)
