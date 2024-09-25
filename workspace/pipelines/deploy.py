@@ -2,11 +2,12 @@ import os
 import asyncio
 import dotenv
 import argparse
-from prefect import flow
+from prefect import Flow
 from prefect.runner.storage import GitRepository
 from prefect.deployments.runner import DeploymentImage
 from typing import cast, Any, TYPE_CHECKING
 from src.main import main as src_main
+
 
 class Versions(argparse.Namespace):
     code: str
@@ -27,7 +28,7 @@ async def main():
     await src_main.with_options(name=args.code).deploy(
         name=args.model,
         image=DeploymentImage(
-            name=version,
+            name=f"custom-docker-registry.myminikube/{version}",
             dockerfile="pipelines/Dockerfile",
         ),
         parameters={

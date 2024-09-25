@@ -1,18 +1,23 @@
 services:
-  fastapi_service:
+  fastapi-service:
     restart: always
     build:
       context: ./workspace
-      dockerfile: service.Dockerfile
+      dockerfile: service/Dockerfile
     ports:
       - 8000:80
     env_file: .env
 
-  prefect_worker:
+  prefect-worker:
     build:
-      context: ./workspace
+      context: .
       dockerfile: worker.Dockerfile
     restart: always
     env_file: .env
     # volumes: # for docker in docker attempts
     #   - /var/run/docker.sock:/var/run/docker.sock
+
+  terminal:
+    build:
+      context: .
+      dockerfile: terminal.Dockerfile
