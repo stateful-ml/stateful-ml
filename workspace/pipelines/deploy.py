@@ -4,7 +4,7 @@ import dotenv
 import argparse
 from prefect import Flow
 from prefect.runner.storage import GitRepository
-from prefect.deployments.runner import DeploymentImage
+from prefect.docker import DockerImage
 from typing import cast, Any, TYPE_CHECKING
 from src.main import main as src_main
 
@@ -21,14 +21,16 @@ def parse_args():
     return cast(Versions, parser.parse_args())
 
 
-async def main():
+# TODO: extract into submodule everything that seems out of timeline, like this script
+if __name__ == "__main__":  # builds on a local machine
     dotenv.load_dotenv()  # needs to load the prefect server link
     args = parse_args()
     version = f"{args.code}__{args.model}"
-    await src_main.with_options(name=args.code).deploy(
+    image_registry = os.environ["IMAGE_REGISTRY_URL"]
+    src_main.with_options(name=args.code).deploy(
         name=args.model,
-        image=DeploymentImage(
-            name=f"custom-docker-registry.myminikube/{version}",
+        image=DockerImage(
+            name=f"{image_registry}/{version}",
             dockerfile="pipelines/Dockerfile",
         ),
         parameters={
@@ -36,10 +38,5 @@ async def main():
             "version": version,
         },
         tags=["stg"],
-        work_pool_name="docker-pool",
+        work_pool_name="kube-pool",
     )
-
-
-# TODO: extract into submodule everything that seems out of timeline, like this script
-if __name__ == "__main__":  # builds on a local machine
-    asyncio.run(main())
