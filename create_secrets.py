@@ -11,4 +11,7 @@ for k in [
 ]:
     Secret(
         value=env[k]  # type: ignore : secret init has the wrong type hint
-    ).save(name=k.lower().replace("_", "-"))
+    ).save(
+        name=k.lower().replace("_", "-"),
+        overwrite=True,
+    )

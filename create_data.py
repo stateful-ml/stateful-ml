@@ -1,9 +1,8 @@
-import supabase
-from supabase import create_client, Client
+from supabase import create_client
 from prefect.blocks.system import Secret
 from pathlib import Path
 
-image_dir = Path('images')
+image_dir = Path("images")
 assert image_dir.exists() and image_dir.is_dir()
 
 supabase_client = create_client(
