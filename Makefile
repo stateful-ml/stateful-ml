@@ -12,4 +12,4 @@ docker-build:
 
 .PHONY: create-pod
 create-pod:
-	kubectl run $(POD_NAME) --image=$(DOCKER_IMAGE_NAME):latest --image-pull-policy=Never --rm -i --tty -- sh
+	kubectl run $(POD_NAME) --image=$(DOCKER_IMAGE_NAME):latest --image-pull-policy=Never --rm -i --tty

@@ -8,15 +8,6 @@ services:
       - 8000:80
     env_file: .env
 
-  prefect-worker:
-    build:
-      context: .
-      dockerfile: worker.Dockerfile
-    restart: always
-    env_file: .env
-    # volumes: # for docker in docker attempts
-    #   - /var/run/docker.sock:/var/run/docker.sock
-
   terminal:
     build:
       context: .
