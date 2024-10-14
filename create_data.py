@@ -1,3 +1,5 @@
+import os
+import dotenv
 from supabase import create_client
 from prefect.blocks.system import Secret
 from pathlib import Path
@@ -5,8 +7,9 @@ from pathlib import Path
 image_dir = Path("images")
 assert image_dir.exists() and image_dir.is_dir()
 
+dotenv.load_dotenv()
 supabase_client = create_client(
-    Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
+    os.environ["SUPABASE_URL"], Secret.load("supabase-key").get()
 )
 
 bucket_name = Secret.load("content-bucket").get()

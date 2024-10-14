@@ -5,8 +5,6 @@ dotenv.load_dotenv()  # for prefect connection
 env = dotenv.dotenv_values("./.env")  # for secrets
 for k in [
     "VECTORSTORE_CONNECTION_STRING",
-    "CONTENT_BUCKET",
-    "SUPABASE_URL",
     "SUPABASE_KEY",
 ]:
     Secret(

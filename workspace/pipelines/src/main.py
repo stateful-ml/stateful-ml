@@ -10,6 +10,7 @@ from sqlalchemy.schema import CreateSchema
 from .shared.data_models import EMBEDDING_SIZE, Content, Users
 from .runner import run_etl
 import dotenv
+import os
 
 
 def extract(content_bucket: str, client: Client, batch_size: int):
@@ -78,7 +79,7 @@ def main(model: str, version: str):
     print(version)
 
     supabase_client = create_client(
-        Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
+        os.environ["SUPABASE_URL"], Secret.load("supabase-key").get()
     )
     pg_engine = create_engine(
         f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
@@ -93,22 +94,3 @@ def main(model: str, version: str):
         index(conn)
 
         conn.commit()
-
-
-if __name__ == "__main__":
-    import os
-    import dotenv
-
-    dotenv.load_dotenv()
-    client = create_client(
-        os.environ["SUPABASE_URL"],
-        os.environ["SUPABASE_KEY"],
-    )
-    a = extract(
-        os.environ["CONTENT_BUCKET"],
-        client,
-        100,
-    )
-    for el in a:
-        print(el)
-        raise
