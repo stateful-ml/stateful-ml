@@ -79,7 +79,7 @@ def main(model: str, version: str):
     print(version)
 
     supabase_client = create_client(
-        os.environ["SUPABASE_URL"], Secret.load("supabase-key").get()
+        Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
     )
     pg_engine = create_engine(
         f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
