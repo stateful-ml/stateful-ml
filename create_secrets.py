@@ -6,7 +6,8 @@ dotenv.load_dotenv()
 for k in [
     "VECTORSTORE_CONNECTION_STRING",
     "SUPABASE_KEY",
-    "SUPABASE_URL"
+    "SUPABASE_URL",
+    "CONTENT_BUCKET",
 ]:
     Secret(
         value=os.environ[k]  # type: ignore : secret init has the wrong type hint

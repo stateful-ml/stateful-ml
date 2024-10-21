@@ -18,7 +18,7 @@ def extract(content_bucket: str, client: Client, batch_size: int):
     metadata = []
     storage = client.storage.from_(content_bucket)
     for blob in storage.list():
-        data = storage.download(blob["path"])
+        data = storage.download(blob["name"])
         batch.append(np.array(data))
         metadata.append((blob["name"],))
         if len(batch) == batch_size:
