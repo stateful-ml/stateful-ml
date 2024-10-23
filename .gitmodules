@@ -1,0 +1,3 @@
+[submodule "workspace/shared/models/embedder-model"]
+	path = workspace/shared/models/embedder-model
+	url = https://github.com/stateful-ml/embedder-model
