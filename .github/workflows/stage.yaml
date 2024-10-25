@@ -1,0 +1,10 @@
+name: Stage
+on:
+    push:
+        tags:
+            - 'v*-rc*'
+jobs:
+  release:
+    runs-on: ubuntu:latest
+    # update the state of the deployment manager
+
