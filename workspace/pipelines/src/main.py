@@ -75,7 +75,7 @@ def index(conn: Connection):
 
 
 @flow
-def main(model: str, version: str):
+def embed_content(embedder: str, version: str):
     print(version)
 
     supabase_client = create_client(

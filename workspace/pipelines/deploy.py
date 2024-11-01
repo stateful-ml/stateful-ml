@@ -6,18 +6,20 @@ from prefect import Flow
 from prefect.runner.storage import GitRepository
 from prefect.docker import DockerImage
 from typing import cast, Any, TYPE_CHECKING
-from src.main import main as src_main
+from src.main import embed_content
 
 
 class Versions(argparse.Namespace):
-    code: str
-    model: str
+    env: str
+    version: str
+    embedder: str
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model-version", dest="model", required=True)
-    parser.add_argument("-c", "--code-version", dest="code", required=True)
+    parser.add_argument("env", required=True)
+    parser.add_argument("version", required=True)
+    parser.add_argument("embedder", required=True)
     return cast(Versions, parser.parse_args())
 
 
@@ -25,18 +27,18 @@ def parse_args():
 if __name__ == "__main__":  # builds on a local machine
     dotenv.load_dotenv()  # needs to load the prefect server link
     args: Versions = parse_args()
-    version = f"{args.code}__{args.model}"
     image_registry = os.environ["IMAGE_REGISTRY_URL"]
-    src_main.with_options(name=args.code).deploy(
-        name=args.model,
+    embed_content.deploy(
+        name=args.env,
         image=DockerImage(
-            name=f"{image_registry}/{version}",
+            name=f"{image_registry}/{args.version}",
             dockerfile="pipelines/Dockerfile",
         ),
         parameters={
-            "model": args.model,
-            "version": version,
+            "embedder": args.embedder,
+            "version": args.version,
         },
-        tags=["stg"],
+        # tags=[],
+        version=args.version,
         work_pool_name="kube-pool",
     )
