@@ -1,0 +1,26 @@
+name: Call deployment manager
+on:
+    push:
+        tags:
+            - 'v*'
+jobs:
+  release:
+    runs-on: ubuntu:latest
+    steps:
+      - name: Determine Environment
+        id: set-env
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [[ "$TAG" == v*-rc* ]]; then
+            echo "environment=stg" >> $GITHUB_OUTPUT
+          elif [[ "$TAG" == v* ]]; then
+            echo "environment=prd" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.STATEFUL_ML_PAT }}
+          repository: stateful-ml/deployment-manager
+          event-type: code_update
+          client-payload: '{"environment": "${{ steps.set-env.outputs.environment }}", "key": "tag", "value": "${{ github.ref_name }}"}'
