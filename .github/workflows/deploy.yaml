@@ -5,16 +5,18 @@ on:
             - 'v*'
 jobs:
   release:
-    runs-on: ubuntu:latest
+    runs-on: ubuntu-latest
     steps:
       - name: Determine Environment
         id: set-env
         run: |
-          TAG="${{ github.ref_name }}"
-          if [[ "$TAG" == v*-rc* ]]; then
+          if [[ "${{ github.ref_name }}" == v*-rc* ]]; then
             echo "environment=stg" >> $GITHUB_OUTPUT
-          elif [[ "$TAG" == v* ]]; then
+          elif [[ "${{ github.ref_name }}" == v* ]]; then
             echo "environment=prd" >> $GITHUB_OUTPUT
+          else
+            echo "tag not recognized" >&2
+            exit 1
           fi
 
       - name: Repository Dispatch
