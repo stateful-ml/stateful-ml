@@ -2,4 +2,4 @@
 pgvectordata
 prefect
 __pycache__
-workspace/shared/models/*
+workspace/shared/models/
