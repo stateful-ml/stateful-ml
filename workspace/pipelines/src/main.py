@@ -9,6 +9,7 @@ from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
 from .shared.data_models import EMBEDDING_SIZE, Content, Users
 from .runner import run_etl
+from .schemas import Dataset
 import dotenv
 import os
 
@@ -22,24 +23,30 @@ def extract(content_bucket: str, client: Client, batch_size: int):
         batch.append(np.array(data))
         metadata.append((blob["name"],))
         if len(batch) == batch_size:
-            yield np.stack(batch, axis=0), pl.DataFrame(metadata, schema=["name"])
+            yield Dataset(
+                np.stack(batch, axis=0),
+                pl.DataFrame(metadata, schema=["name"]),
+            )
             batch = []
             metadata = []
 
 
-def transform(data: tuple[np.ndarray, pl.DataFrame]):
-    arr, df = data
-    return np.random.random((arr.shape[0], EMBEDDING_SIZE)), df
+def transform(dataset: Dataset):
+    return Dataset(
+        np.random.random((dataset.data.shape[0], EMBEDDING_SIZE)),
+        dataset.metadata,
+    )
 
 
-def upload(data: tuple[np.ndarray, pl.DataFrame], conn: Connection):
-    arr, df = data
+def upload(dataset: Dataset, conn: Connection):
     with Session(conn) as session:
         # TODO: remove the silly overhead
-        for embedding, metadata in zip(arr, df.iter_rows(named=True)):
+        for embedding, metadata in zip(
+            dataset.data,
+            dataset.metadata.iter_rows(named=True),
+        ):
             metadata["embedding"] = embedding
             session.add(Content.model_validate(metadata))
-        # session.flush()
 
 
 @task
