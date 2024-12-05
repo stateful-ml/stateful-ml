@@ -1,3 +1,5 @@
+from __future__ import annotations
+import mlflow.models
 import polars as pl
 import numpy as np
 from functools import partial
@@ -12,6 +14,8 @@ from .runner import run_etl
 from .schemas import Dataset
 import dotenv
 import os
+import mlflow
+from mlflow.pyfunc import PyFuncModel
 
 
 def extract(content_bucket: str, client: Client, batch_size: int):
@@ -31,9 +35,9 @@ def extract(content_bucket: str, client: Client, batch_size: int):
             metadata = []
 
 
-def transform(dataset: Dataset):
+def transform(dataset: Dataset, model: PyFuncModel):
     return Dataset(
-        np.random.random((dataset.data.shape[0], EMBEDDING_SIZE)),
+        model.predict(dataset.data),
         dataset.metadata,
     )
 
@@ -50,7 +54,9 @@ def upload(dataset: Dataset, conn: Connection):
 
 
 @task
-def etl(content_bucket: str, source: Client, destination: Connection):
+def etl(
+    content_bucket: str, source: Client, destination: Connection, model: PyFuncModel
+):
     run_etl(
         partial(
             extract,
@@ -58,8 +64,14 @@ def etl(content_bucket: str, source: Client, destination: Connection):
             client=source,
             batch_size=100,
         ),
-        transform,
-        partial(upload, conn=destination),
+        partial(
+            transform,
+            model=model,
+        ),
+        partial(
+            upload,
+            conn=destination,
+        ),
     )
 
 
@@ -92,11 +104,12 @@ def embed_content(embedder: str, version: str):
         f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
     )
     content_bucket = Secret.load("content-bucket").get()
+    model: PyFuncModel = mlflow.pyfunc.load_model(embedder)
 
     with pg_engine.connect() as conn:
         manage_schema(version, conn)
 
-        etl(content_bucket, supabase_client, conn)
+        etl(content_bucket, supabase_client, conn, model)
 
         index(conn)
 
