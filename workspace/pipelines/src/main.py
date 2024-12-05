@@ -1,7 +1,7 @@
 from __future__ import annotations
-import mlflow.models
 import polars as pl
 import numpy as np
+from mlflow.pyfunc import PyFuncModel, load_model
 from functools import partial
 from prefect import flow, task
 from prefect.blocks.system import Secret
@@ -12,10 +12,6 @@ from sqlalchemy.schema import CreateSchema
 from .shared.data_models import EMBEDDING_SIZE, Content, Users
 from .runner import run_etl
 from .schemas import Dataset
-import dotenv
-import os
-import mlflow
-from mlflow.pyfunc import PyFuncModel
 
 
 def extract(content_bucket: str, client: Client, batch_size: int):
@@ -94,7 +90,7 @@ def index(conn: Connection):
 
 
 @flow
-def embed_content(embedder: str, version: str):
+def embed_content(embedder_version: str, version: str):
     print(version)
 
     supabase_client = create_client(
@@ -104,7 +100,7 @@ def embed_content(embedder: str, version: str):
         f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
     )
     content_bucket = Secret.load("content-bucket").get()
-    model: PyFuncModel = mlflow.pyfunc.load_model(embedder)
+    model = load_model(embedder_version)
 
     with pg_engine.connect() as conn:
         manage_schema(version, conn)
