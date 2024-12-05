@@ -1,5 +1,5 @@
 # Stateful ML
-This is the central monorepo of the example project. Please look at the infra repo to see the setup in practice, but the main idea is:
+This is the central monorepo of the example project. Please look at the [infra](https://github.com/stateful-ml/infra) repo to see the setup in practice, but the main idea is:
 - This repo contains the code for the services and pipelines of the project
 - Dedicated ml repos do nasty ml things without polluting this repo's history and having complete freedom in mlflow-style modeling lifecycle
 - A dedicated deployment manager repo turns mlflow-style into actually-safe-for-production-style by recording the combination of versions deployed at any given moment in any environment (e.g. code version 1.2.3, this model version 42, that model version 15, the other model version 301)
