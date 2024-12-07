@@ -100,7 +100,7 @@ def embed_content(embedder_version: str, version: str):
         f"postgresql+psycopg2://{Secret.load('vectorstore-connection-string').get()}"
     )
     content_bucket = Secret.load("content-bucket").get()
-    model = load_model(embedder_version)
+    model = load_model(f"models:/{embedder_version}")
 
     with pg_engine.connect() as conn:
         manage_schema(version, conn)
