@@ -1,40 +1,61 @@
-from fastapi import FastAPI, Depends
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
-from .request_typing import RecommendationRequest
-from .db import get_session
-from pydantic import BaseModel
-from typing import Literal
+from contextlib import asynccontextmanager
+from typing import Any, cast
 
-app = FastAPI()
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
+from mlflow.pyfunc import load_model
+from sqlmodel import select, text
 
-
-class HealthcheckResponse(BaseModel):
-    db: Literal["healthy", "unhealthy"]
-    service: Literal["healthy"] # what am i doing
+from .config import config
+from .db import Content, ContentId, DBSession, Users
+from .schemas import RecommendationRequest
 
 
-@app.get("/recommendations")
-async def read_item(request: RecommendationRequest):  # -> list[ContentId]:
-    return
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global preference_updater
+    preference_updater = load_model(f"models:/{config.preference_updater_identifier}")
+    yield
+    del preference_updater
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.post("/recommend")
+async def recommend(
+    request: RecommendationRequest, session: DBSession
+) -> list[ContentId]:
+    user = await session.get(Users, request.user)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user.preference = preference_updater.predict(user.preference)
+    await session.commit()
+
+    recommendations = await session.exec(
+        select(Content.id)
+        .order_by(
+            Content.embedding.l2_distance(
+                select(cast(Any, Users.preference))
+                .where(Users.id == request.user)
+                .scalar_subquery()
+            )
+        )
+        .limit(request.amount)
+    )
+    return list(recommendations.all())
 
 
 @app.get("/health")
-async def health():
-    return {}
-
-
-@app.get("/health_details")
-async def health_details(session: AsyncSession = Depends(get_session)):
+async def health(session: DBSession):
     try:
-        await session.exec(select(1))
-        return HealthcheckResponse(db="healthy", service="healthy")
+        (await session.execute(text(f"select 1 from {config.version}"))).one()
+        return JSONResponse({"status": "healthy"})
     except Exception:
-        return HealthcheckResponse(db="unhealthy", service="healthy")
-
-
-# define a db connection - done
-# define a function to do recommendations
-# define an etl pipeline - done
-# define an etl factory
-# fetch an ml model from the registry
+        return JSONResponse(
+            {
+                "status": "database error",
+            },
+            status_code=503,
+        )

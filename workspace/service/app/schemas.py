@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Literal
 from .shared.data_models import ContentId, UserId
 
@@ -11,4 +11,5 @@ class Impression(BaseModel):
 
 class RecommendationRequest(BaseModel):
     user: UserId
+    amount: int = Field(gt=0, lt=100)
     impressions: list[Impression] | None = None
