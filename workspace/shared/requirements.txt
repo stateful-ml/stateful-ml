@@ -5,3 +5,4 @@ sqlmodel==0.0.18
 sqlalchemy==2.0.29
 pgvector==0.2.5
 pydantic==2.7.1
+pydantic-settings==2.6.0

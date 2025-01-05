@@ -6,10 +6,10 @@ from functools import partial
 from prefect import flow, task
 from prefect.blocks.system import Secret
 from supabase import create_client, Client
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 from sqlalchemy import Connection, Index
 from sqlalchemy.schema import CreateSchema
-from .shared.data_models import EMBEDDING_SIZE, Content, Users
+from .shared.data_models import EMBEDDING_SIZE, Content, Users, TableManager
 from .runner import run_etl
 from .schemas import Dataset
 
@@ -74,8 +74,8 @@ def etl(
 @task
 def manage_schema(version: str, conn: Connection):
     conn.execute(CreateSchema(version, if_not_exists=True))
-    SQLModel.metadata.schema = version
-    SQLModel.metadata.create_all(conn)
+    TableManager.set_schema(version)
+    TableManager.create_all(conn)
 
 
 @task
