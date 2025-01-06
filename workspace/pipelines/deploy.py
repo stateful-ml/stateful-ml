@@ -14,9 +14,9 @@ class Versions(argparse.Namespace):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("env", required=True)
-    parser.add_argument("version", required=True)
-    parser.add_argument("embedder", required=True)
+    parser.add_argument("--env", required=True)
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--embedder", required=True)
     return cast(Versions, parser.parse_args())
 
 
