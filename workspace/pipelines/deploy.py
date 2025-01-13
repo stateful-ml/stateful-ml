@@ -2,6 +2,7 @@ import argparse
 from prefect.docker import DockerImage
 from typing import cast
 from src.main import embed_content
+from pathlib import Path
 
 
 class Versions(argparse.Namespace):
@@ -26,7 +27,7 @@ if __name__ == "__main__":  # builds on a local machine
         name=args.env, # e.g. flow: embed_content, deployment: stg
         image=DockerImage(
             name=f"{args.image_registry}/{args.image_repo}:{args.version}",
-            dockerfile="pipelines/Dockerfile",
+            dockerfile=f"{Path(__file__).parent}/Dockerfile",
         ),
         parameters={
             "embedder_version": args.embedder,
