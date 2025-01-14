@@ -18,7 +18,8 @@ def parse_args():
     parser.add_argument("--env", required=True)
     parser.add_argument("--version", required=True)
     parser.add_argument("--embedder", required=True)
-    return cast(Versions, parser.parse_known_args())
+    args, unknown = parser.parse_known_args()
+    return cast(Versions, args)
 
 
 if __name__ == "__main__":  # builds on a local machine
