@@ -1,6 +1,7 @@
 from __future__ import annotations
 import polars as pl
 import numpy as np
+import mlflow
 from mlflow.pyfunc import PyFuncModel, load_model
 from functools import partial
 from prefect import flow, task
@@ -92,6 +93,7 @@ def index(conn: Connection):
 @flow
 def embed_content(embedder_version: str, version: str):
     print(version)
+    mlflow.set_tracking_uri(Secret.load("mlflow-tracking-uri").get())
 
     supabase_client = create_client(
         Secret.load("supabase-url").get(), Secret.load("supabase-key").get()
