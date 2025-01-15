@@ -5,7 +5,7 @@ sqlmodel==0.0.18
 sqlalchemy==2.0.29
 pgvector==0.2.5
 pydantic==2.7.1
-pydantic-settings==2.6.0
+pydantic-settings==2.7.1
 psycopg2-binary==2.9.9
 python-dotenv==1.0.1
 mlflow==2.18.0

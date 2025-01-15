@@ -8,6 +8,7 @@ for k in [
     "SUPABASE_KEY",
     "SUPABASE_URL",
     "CONTENT_BUCKET",
+    "MLFLOW_TRACKING_URI"
 ]:
     Secret(
         value=os.environ[k]  # type: ignore : secret init has the wrong type hint
