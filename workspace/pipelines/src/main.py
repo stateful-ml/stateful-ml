@@ -6,6 +6,7 @@ from mlflow.pyfunc import PyFuncModel, load_model
 from functools import partial
 from prefect import flow, task
 from prefect.blocks.system import Secret
+from prefect.logging import get_run_logger, get_logger
 from supabase import create_client, Client
 from sqlmodel import Session, create_engine
 from sqlalchemy import Connection, Index
@@ -13,23 +14,34 @@ from sqlalchemy.schema import CreateSchema
 from .shared.data_models import EMBEDDING_SIZE, Content, Users, TableManager
 from .runner import run_etl
 from .schemas import Dataset
+from typing import TypeVar, Iterable
+
+T = TypeVar("T")
+
+
+def by_chunks(x: Iterable[T], n: int) -> Iterable[list[T]]:
+    values = []
+    for value in x:
+        values.append(value)
+        if len(values) >= n:
+            yield values
+            values = []
+    yield values
 
 
 def extract(content_bucket: str, client: Client, batch_size: int):
-    batch = []
-    metadata = []
     storage = client.storage.from_(content_bucket)
-    for blob in storage.list():
-        data = storage.download(blob["name"])
-        batch.append(np.array(data))
-        metadata.append((blob["name"],))
-        if len(batch) == batch_size:
-            yield Dataset(
-                np.stack(batch, axis=0),
-                pl.DataFrame(metadata, schema=["name"]),
-            )
-            batch = []
-            metadata = []
+    for input_batch in by_chunks(storage.list(), batch_size):
+        output_batch = []
+        metadata = []
+        for blob in input_batch:
+            _data = storage.download(blob["name"]) # imagine im using it :)
+            output_batch.append(np.random.uniform(0, 1, 50))
+            metadata.append({"id": blob["name"]})
+        yield Dataset(
+            np.stack(output_batch, axis=0),
+            pl.DataFrame(metadata),
+        )
 
 
 def transform(dataset: Dataset, model: PyFuncModel):
@@ -48,6 +60,7 @@ def upload(dataset: Dataset, conn: Connection):
         ):
             metadata["embedding"] = embedding
             session.add(Content.model_validate(metadata))
+        session.commit()
 
 
 @task
