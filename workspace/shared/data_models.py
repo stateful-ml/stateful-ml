@@ -10,6 +10,8 @@ UserId: TypeAlias = str
 EMBEDDING_SIZE = 200
 
 
+# XXX a simple way to decouple schema configuration from table definition.
+# relies on the table setup simplicity to be effective instead of spaghetti
 class TableManager:
     """
     consumers dont need to know the inheritance structure
@@ -19,6 +21,8 @@ class TableManager:
     @staticmethod
     def set_schema(schema: str):
         SQLModel.metadata.schema = schema
+        for table in SQLModel.metadata.tables.values():
+            table.schema = SQLModel.metadata.schema
 
     @staticmethod
     def create_all(bind):
