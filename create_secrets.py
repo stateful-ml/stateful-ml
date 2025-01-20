@@ -8,6 +8,7 @@ for k in [
     "SUPABASE_KEY",
     "SUPABASE_URL",
     "CONTENT_BUCKET",
+    "USERS_TABLE",
     "MLFLOW_TRACKING_URI"
 ]:
     Secret(

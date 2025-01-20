@@ -1,8 +1,9 @@
 import argparse
 from prefect.docker import DockerImage
 from typing import cast
-from src.main import embed_content
+from src.main import etl
 from pathlib import Path
+from datetime import datetime
 
 
 class Versions(argparse.Namespace):
@@ -24,10 +25,10 @@ def parse_args():
 
 if __name__ == "__main__":  # builds on a local machine
     args: Versions = parse_args()
-    embed_content.deploy(
-        name=args.env, # e.g. flow: embed_content, deployment: stg
+    etl.deploy(
+        name=args.env,  # e.g. flow: embed_content, deployment: stg
         image=DockerImage(
-            name=f"{args.image_registry}/{args.image_repo}:{args.version}",
+            name=f"{args.image_registry}/{args.image_repo}:{args.version}-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}",
             dockerfile=f"{Path(__file__).parent}/Dockerfile",
         ),
         parameters={
