@@ -1,4 +1,3 @@
-import os
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from typing import Annotated
@@ -16,7 +15,7 @@ from .shared.data_models import (
 TableManager.set_schema(config.version)
 
 engine = create_async_engine(
-    f"postgresql+asyncpg://{os.environ['VECTORSTORE_CONNECTION_STRING']}",
+    f"postgresql+asyncpg://{config.vectorstore_connection_string}",
     echo=True,
     future=True,
 )
