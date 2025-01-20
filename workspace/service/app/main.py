@@ -50,7 +50,7 @@ async def recommend(
 @app.get("/health")
 async def health(session: DBSession):
     try:
-        (await session.execute(text(f"select 1 from {config.version}"))).one()
+        (await session.exec(select(Users.id).limit(1))).one()
         return JSONResponse({"status": "healthy"})
     except Exception:
         return JSONResponse(
