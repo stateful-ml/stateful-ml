@@ -13,7 +13,7 @@ supabase_client = create_client(
     os.environ["SUPABASE_URL"], Secret.load("supabase-key").get()
 )
 
-table_name = Secret.load("content-table").get()
+table_name = Secret.load("users-table").get()
 (
     supabase_client.table(table_name)
     .insert(
